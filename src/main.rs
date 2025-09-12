@@ -1,22 +1,17 @@
-use bevy::prelude::*;
-use bevy_egui::{EguiContexts, EguiPlugin, EguiPrimaryContextPass, egui};
+use console::style;
 
 fn main() {
-    App::new()
-        .add_plugins(DefaultPlugins)
-        .add_plugins(EguiPlugin::default())
-        .add_systems(Startup, setup_camera_system)
-        .add_systems(EguiPrimaryContextPass, ui_example_system)
-        .run();
-}
+    for i in 0..=255 {
+        print!("{:03} ", style(i).color256(i));
+        if i % 16 == 15 {
+            println!();
+        }
+    }
 
-fn setup_camera_system(mut commands: Commands) {
-    commands.spawn(Camera2d);
-}
-
-fn ui_example_system(mut contexts: EguiContexts) -> Result {
-    egui::Window::new("Hello").show(contexts.ctx_mut()?, |ui| {
-        ui.label("world");
-    });
-    Ok(())
+    for i in 0..=255 {
+        print!("{:03} ", style(i).black().on_color256(i));
+        if i % 16 == 15 {
+            println!();
+        }
+    }
 }

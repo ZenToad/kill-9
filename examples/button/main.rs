@@ -4,6 +4,14 @@ const NORMAL_BUTTON: Color = Color::srgb(0.15, 0.15, 0.15);
 const HOVERED_BUTTON: Color = Color::srgb(0.25, 0.25, 0.25);
 const PRESSED_BUTTON: Color = Color::srgb(0.35, 0.75, 0.35);
 
+type ButtonTuple<'a> = (
+    &'a Interaction,
+    Mut<'a, BackgroundColor>,
+    Mut<'a, BorderColor>,
+    &'a Children,
+);
+type ButtonFilter = (Changed<Interaction>, With<Button>);
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
@@ -19,15 +27,7 @@ fn setup(mut commands: Commands, assets: Res<AssetServer>) {
 }
 
 fn button_system(
-    mut interaction_query: Query<
-        (
-            &Interaction,
-            &mut BackgroundColor,
-            &mut BorderColor,
-            &Children,
-        ),
-        (Changed<Interaction>, With<Button>),
-    >,
+    mut interaction_query: Query<ButtonTuple, ButtonFilter>,
     mut text_query: Query<&mut Text>,
 ) {
     for (interaction, mut color, mut border_color, children) in &mut interaction_query {
