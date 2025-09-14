@@ -29,9 +29,9 @@ fn main() {
     // cargo_wrap();
     // download();
     // fastbar();
-    finebars();
+    // finebars();
     // log();
-    // long_spinner();
+    long_spinner();
     // morebars();
     // multi();
     // multi_tree();

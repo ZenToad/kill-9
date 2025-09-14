@@ -1,18 +1,40 @@
 #![allow(dead_code)]
+#![allow(unused_imports)]
 
+use anyhow::Result;
 use console::{Key, Term, style};
 use std::io;
 use std::{io::Write, thread, time::Duration};
 
-fn main() -> io::Result<()> {
-    colors();
+fn main() -> Result<()> {
+    // colors();
     // colors256();
     // cursor_at();
+    // Ok(())
     // keyboard()
-    term()
+    // term()
+    term_vs_println()
 }
 
-fn term() -> io::Result<()> {
+fn term_vs_println() -> Result<()> {
+    let term = Term::stdout();
+
+    // --- Using println! ---
+    println!("Checking modules...");
+    thread::sleep(Duration::from_secs(1));
+    println!("Done.");
+    println!("msf6 > "); // <- leaves the extra "Checking..." line above forever
+
+    // --- Using Term ---
+    term.write_line("Checking modules...")?;
+    thread::sleep(Duration::from_secs(1));
+    term.clear_last_lines(1)?; // remove the line
+    term.write_line("Done.")?;
+    term.write_str("msf6 > ")?; // prompt without newline
+
+    Ok(())
+}
+fn term() -> Result<()> {
     let term = Term::stdout();
     term.set_title("Counting...");
     term.write_line("Going to do some counting now")?;
@@ -36,7 +58,7 @@ fn term() -> io::Result<()> {
     Ok(())
 }
 
-fn keyboard() -> io::Result<()> {
+fn keyboard() -> Result<()> {
     let raw = std::env::args_os().any(|arg| arg == "-r" || arg == "--raw");
     let term = Term::stdout();
     term.write_line("Press any key. Esc to exit")?;
@@ -54,7 +76,7 @@ fn keyboard() -> io::Result<()> {
     Ok(())
 }
 
-fn write_chars() -> io::Result<()> {
+fn write_chars() -> Result<()> {
     let term = Term::stdout();
     let (height, width) = term.size();
     for x in 0..width {
