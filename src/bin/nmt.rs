@@ -22,21 +22,6 @@ struct Cli {
     fast_start: bool,
 }
 
-#[derive(Parser)]
-#[command(no_binary_name = true)]
-struct Repl {
-    #[command(subcommand)]
-    cmd: Cmd,
-}
-
-#[derive(Subcommand, Debug)]
-enum Cmd {
-    Clear,
-    Help,
-    Exit,
-    Quit,
-}
-
 struct App {
     term: Term,
 }
@@ -82,10 +67,6 @@ access: PERMISSION DENIED.
 access: PERMISSION DENIED.
 > access main security grid.
 access: PERMISSION DENIED....and...
-{0}
-{0}
-{0}
-{0}
 {0}
 {0}
 {0}
@@ -152,38 +133,43 @@ fn wizard(app: App) {
 
     write_help_line(&app);
 
-    app.term.set_title("DeEz NuTs");
     loop {
-        if let Ok(result) = Input::<String>::new()
+        if let Ok(line) = Input::<String>::new()
             .with_prompt("mnt >")
             .allow_empty(true)
             .interact_text()
         {
-            match result.as_str() {
-                "clear" => {
-                    clear_screen(&app);
+            match line.to_lowercase().trim() {
+                "" => {
+                    continue;
                 }
                 "help" => {
                     help(&app);
                 }
-                "exit" | "quit" => {
-                    app.term.write_line("Bye!!!").unwrap();
+                "clear" => {
+                    clear_screen(&app);
+                }
+                "quit" | "exit" => {
                     return;
                 }
                 "search" => {
-                    run_search(&app);
+                    println!("Do fake searcn here@@@");
                 }
                 _ => {
-                    println!("Unknown command: {result}");
-                    write_help_line(&app);
+                    println!("Unknown Command: {line}");
                 }
             }
         }
     }
 }
 
-fn run_search(app: &App) {
-    let _ = app.term.write_line("Running search...");
+fn help(app: &App) {
+    let t = &app.term;
+    let _ = t.write_line(&format!("{}", style("commands:").bold()));
+    let _ = t.write_line("  clear               - clear the screen");
+    let _ = t.write_line("  exit | quit         - leave");
+    let _ = t.write_line("  help                - show this help");
+    let _ = t.write_line("  search              - search for ...");
 }
 
 fn write_help_line(app: &App) {
@@ -196,12 +182,4 @@ fn write_help_line(app: &App) {
 
 fn clear_screen(app: &App) {
     app.term.clear_screen().unwrap();
-}
-
-fn help(app: &App) {
-    let t = &app.term;
-    let _ = t.write_line(&format!("{}", style("commands:").bold()));
-    let _ = t.write_line("  help                - show this help");
-    let _ = t.write_line("  clear               - clear the screen");
-    let _ = t.write_line("  exit | quit         - leave");
 }
