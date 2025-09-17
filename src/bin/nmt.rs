@@ -24,14 +24,83 @@ struct Cli {
 
 struct App {
     term: Term,
+    modules: Vec<Module>,
+    using: Option<u32>,
+    exploit: bool,
 }
 
 impl App {
     fn new() -> Self {
         Self {
             term: Term::stdout(),
+            using: None,
+            modules: genearate_modules(),
+            exploit: false,
         }
     }
+}
+
+struct Module {
+    name: String,
+    date: String,
+    rank: ModuleRank,
+    check: bool,
+    desc: String,
+}
+
+#[derive(Debug)]
+enum ModuleRank {
+    average,
+    normal,
+    good,
+    great,
+}
+
+fn genearate_modules() -> Vec<Module> {
+    vec![
+        Module {
+            name: "Cool Name".to_string(),
+            date: "DATE".to_string(),
+            rank: ModuleRank::good,
+            check: false,
+            desc: "Very cool description".to_string(),
+        },
+        Module {
+            name: "ASDF".to_string(),
+            date: "DATE".to_string(),
+            rank: ModuleRank::good,
+            check: false,
+            desc: "Very cool description".to_string(),
+        },
+        Module {
+            name: "ASDF".to_string(),
+            date: "DATE".to_string(),
+            rank: ModuleRank::good,
+            check: false,
+            desc: "Very cool description".to_string(),
+        },
+        Module {
+            name: "ASDF".to_string(),
+            date: "DATE".to_string(),
+            rank: ModuleRank::good,
+            check: false,
+            desc: "Very cool description".to_string(),
+        },
+        Module {
+            name: "ASDF".to_string(),
+            date: "DATE".to_string(),
+            rank: ModuleRank::good,
+            check: false,
+            desc: "Very cool description".to_string(),
+        },
+        Module {
+            name: "ASDF".to_string(),
+            date: "DATE".to_string(),
+            rank: ModuleRank::good,
+            check: false,
+            desc: "Very cool description".to_string(),
+        },
+    ]
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -48,7 +117,7 @@ impl App {
 fn main() {
     let cli = Cli::parse();
 
-    let app = App::new();
+    let mut app = App::new();
     app.term.hide_cursor().unwrap();
 
     if !cli.fast_start {
@@ -127,15 +196,39 @@ fn do_long_startup() {
     // output once finished:
 }
 
-fn wizard(app: App) {
+fn reverse_shell() {
+    //
+    println!("We're In!!!");
+    loop {
+        if let Ok(line) = Input::<String>::new()
+            .with_prompt("we're in!>")
+            .allow_empty(true)
+            .interact_text()
+        {
+            match line.to_lowercase().trim() {
+                "quit" | "exit" => {
+                    return;
+                }
+                _ => {
+                    continue;
+                }
+            }
+        }
+    }
+}
+
+fn wizard(mut app: App) {
     // banner
     app.term.show_cursor().unwrap();
 
     write_help_line(&app);
 
     loop {
+        if app.exploit {
+            reverse_shell();
+        }
         if let Ok(line) = Input::<String>::new()
-            .with_prompt("mnt >")
+            .with_prompt(get_prompt(&app))
             .allow_empty(true)
             .interact_text()
         {
@@ -153,7 +246,29 @@ fn wizard(app: App) {
                     return;
                 }
                 "search" => {
-                    println!("Do fake searcn here@@@");
+                    search(&app, &line);
+                }
+                "use 1" => {
+                    app.using = Some(1);
+                    println!(
+                        "{} Using configured payload windows/meterpreter/reverse_tcp",
+                        style("[+]").green()
+                    );
+                }
+                "use 3" => {
+                    app.using = Some(3);
+                }
+                "options" => {
+                    show_options(&app);
+                }
+                "set" => {
+                    set_option(&app, &line);
+                }
+                "run" => {
+                    run(&app);
+                }
+                "exploit" => {
+                    exploit(&mut app);
                 }
                 _ => {
                     println!("Unknown Command: {line}");
@@ -163,6 +278,126 @@ fn wizard(app: App) {
     }
 }
 
+fn show_options(app: &App) {
+    println!("Module options(scanner/smb/smbb_ms17_010):");
+    println!();
+    println!("Name          Current Setting          Required  Description");
+    println!("----          ---------------          --------  -----------");
+    println!(
+        "CHECK_ARCH    true                     no        Check for architecture on vulnerable hosts"
+    );
+    println!(
+        "CHECK_DOPU    true                     no        Check for DOUBLEPULSAR on vulnerable hosts"
+    );
+    println!(
+        "CHECK_PIPE    false                    no        Check for named pipes on vulnerable hosts"
+    );
+    println!("NAMES_PIPES   /usr/share/neonminotaur  yes       List of named pipes to check");
+    println!("              lists/named_pipes.txt");
+    println!("RHOSTS                                 yes       The target host(s)");
+    println!("RPORT         445                      yes       The SMB service port (TCP)");
+    println!(
+        "SMBDomain     .                        no        The Windows domain to use for authentication"
+    );
+}
+
+fn set_option(app: &App, line: &String) {
+    //
+    println!("rhosts => 10.2.0.9")
+}
+
+fn run(app: &App) {
+    if let Some(num) = app.using {
+        if num == 3 {
+            //
+            println!();
+            println!(
+                "{} 10.2.0.9:455       - Host is likely VULNERABLE to MS17-010! - Windows 5.1 x86 (32-bit)",
+                style("[+]").green()
+            );
+            println!(
+                "{} 10.2.0.9:455       - Scanned 1 of 1 hosts (100% complete)",
+                style("[+]").blue()
+            );
+            println!(
+                "{} Auxilary module execution completed",
+                style("[+]").blue()
+            );
+        } else if num == 1 {
+            println!(
+                "{} Using configured payload windows/meterpreter/reverse_tcp",
+                style("[+]").blue()
+            );
+        }
+    }
+}
+
+fn get_prompt(app: &App) -> String {
+    if let Some(num) = app.using {
+        if num == 1 {
+            format!(
+                "nmt auxilary({}) >",
+                style("exploit/smb/smbb_ms17_010").red()
+            )
+        } else {
+            format!(
+                "nmt auxilary({}) >",
+                style("scanner/smb/smbb_ms17_010").red()
+            )
+        }
+    } else {
+        "nmt >".to_string()
+    }
+}
+
+fn search(app: &App, line: &String) {
+    //
+    println!("Matching Modules");
+    println!("================");
+    println!();
+    println!("#  Name           Disclosure Date    Rank    Check    Description");
+    println!("-  ----           ---------------    ----    -----    -----------");
+
+    for (index, module) in app.modules.iter().enumerate() {
+        println!(
+            "{} {} {} {:?} {} {}",
+            index, module.name, module.date, module.rank, module.check, module.desc
+        );
+    }
+    println!(
+        "Interact with a module by name or index. For example {}, {} or {}",
+        style("info 7").green(),
+        style("use 7").green(),
+        style("use exploit/windows/smb/smb_doublepular_rce").green(),
+    );
+}
+
+fn exploit(app: &mut App) {
+    //
+    println!(
+        "{} Started reverse TCP handler on 10.0.2.4:4444",
+        style("[*]").blue()
+    );
+    println!(
+        "{} 10.0.2.4:445 - Target OS: Windows 5.1",
+        style("[*]").blue()
+    );
+    println!(
+        "{} 10.0.2.4:445 - Filling barrel with fish... done",
+        style("[*]").blue()
+    );
+    println!(
+        "{} 10.0.2.4:445 - Service started su;ccessfully...",
+        style("[+]").green()
+    );
+    println!(
+        "{} Sending stage (175686 bytes) to 10.0.2.9",
+        style("[*]").blue()
+    );
+
+    app.exploit = true;
+}
+
 fn help(app: &App) {
     let t = &app.term;
     let _ = t.write_line(&format!("{}", style("commands:").bold()));
@@ -170,6 +405,12 @@ fn help(app: &App) {
     let _ = t.write_line("  exit | quit         - leave");
     let _ = t.write_line("  help                - show this help");
     let _ = t.write_line("  search              - search for ...");
+    let _ = t.write_line("  use 1               - use exploits");
+    let _ = t.write_line("  use 3               - use auxilary");
+    let _ = t.write_line("  options             - show options");
+    let _ = t.write_line("  set                 - set option");
+    let _ = t.write_line("  run                 - run selection");
+    let _ = t.write_line("  exploit             - run exploit");
 }
 
 fn write_help_line(app: &App) {
